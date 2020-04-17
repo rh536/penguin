@@ -5,8 +5,6 @@ namespace game
 {
 class AbstractBoardCell
 {
-private:
-
 public:
     virtual ~AbstractBoardCell(){};
 };

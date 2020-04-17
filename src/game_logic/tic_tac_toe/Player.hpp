@@ -3,18 +3,15 @@
 
 #include <iostream>
 #include "../AbstractPlayer.hpp"
-#include "../AbstractPawn.hpp"
 
 namespace game
 {
 namespace tic_tac_toe
 {
-class Player : public AbstractPlayer, public AbstractPawn<Player, BoardCell>
+class Player : public AbstractPlayer
 {
 public:
     explicit Player(unsigned int id);
-
-    unsigned int getId() { return AbstractPlayer::getId(); };
 };
 } // namespace tic_tac_toe
 } // namespace game

@@ -1,9 +1,3 @@
-#include <algorithm>
-#include <assert.h>
-
-#include "Board.hpp"
-#include "PenguinPawn.hpp"
-#include "HumanPlayer.hpp"
 #include "PenguinGame.hpp"
 
 namespace game
@@ -12,7 +6,7 @@ namespace penguin
 {
 
 PenguinGame::PenguinGame(const size_t dimension, const size_t number_of_penguins_per_team)
-    : AbstractGame(new Board(dimension, number_of_penguins_per_team))
+    : AbstractGame(new Board(dimension, number_of_penguins_per_team)) // nullptr during construct, then we define the board
 {
 }
 
@@ -21,9 +15,9 @@ PenguinGame::~PenguinGame()
     delete board;
 }
 
-bool PenguinGame::play(PenguinPawn *pawn, BoardCell *move)
+bool PenguinGame::play(const int player_id, BoardCell *move)
 {
-    bool moved = board->performMove(pawn, move);
+    bool moved = board->performMove(player_id, move);
     if (moved)
     {
         ++numberMoves;
@@ -31,17 +25,17 @@ bool PenguinGame::play(PenguinPawn *pawn, BoardCell *move)
     return moved;
 }
 
-void PenguinGame::revertPlay()
+void PenguinGame::revertPlay(BoardCell *cell)
 {
     --numberMoves;
-    int player = 2;
+    int player = 0;
 
     if (numberMoves % 2)
     {
         player = 1;
     }
 
-    board->revertMove(board->getPlayerById(player));
+    board->revertMove(player, cell);
 }
 
 bool PenguinGame::isFinished() const
@@ -49,7 +43,7 @@ bool PenguinGame::isFinished() const
     return board->checkStatus() != 0;
 }
 
-unsigned int PenguinGame::getPlayerToPlay() const
+int PenguinGame::getPlayerToPlay() const
 {
     int nextPlayer = 2;
 
@@ -59,37 +53,6 @@ unsigned int PenguinGame::getPlayerToPlay() const
     }
 
     return nextPlayer;
-}
-
-std::vector<Move> PenguinGame::getAvailableMoves(HumanPlayer *human_player)
-{
-    assert(human_player != nullptr);
-    std::vector<Move> ret;
-    Board *penguin_board = (Board *)board;
-    std::vector<PenguinPawn *> penguins = human_player->getPenguins();
-
-    for (PenguinPawn *penguin : penguins)
-    {
-        BoardCell *current_cell = (BoardCell *)penguin->getCurrentCell();
-        // std::cout << "Penguin #" << penguin->getId() << " @(" << current_cell->getPosition().x << "," << current_cell->getPosition().y << ")" << std::endl;
-        std::vector<BoardCell *> availableCells = penguin_board->getAvailableCells(penguin);
-        // for (auto cell : availableCells)
-        // {
-        //     std::cout << cell->getPosition().x << "," << cell->getPosition().y << std::endl;
-        // }
-        std::transform(availableCells.begin(), availableCells.end(), std::back_inserter(ret), [current_cell, penguin](BoardCell *cell) -> Move {
-            // std::cout << penguin->getId()<<","<<cell->getPosition().x << ","<< cell->getPosition().y << std::endl;
-             return {(AbstractBoardCell*)current_cell,
-                (AbstractBoardCell*)cell,
-               (AbstractPawn<game::AbstractPlayer, game::AbstractBoardCell> *)penguin}; });
-    }
-
-    return ret;
-}
-
-int PenguinGame::checkStatus() const
-{
-    return board->checkStatus();
 }
 } // namespace penguin
 } // namespace game

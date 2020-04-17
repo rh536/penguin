@@ -6,12 +6,18 @@ import { TranslateService } from '@ngx-translate/core';
 
 import { I18nService } from '@app/core';
 
+import { darkTheme, changeTheme } from '../app.component';
+
 @Component({
   selector: 'app-shell',
   templateUrl: './shell.component.html',
   styleUrls: ['./shell.component.scss']
 })
-export class ShellComponent {
+export class ShellComponent implements OnInit {
+  public isToggled: boolean;
+
+  maDate: string = new Date().toISOString();
+
   constructor(
     private router: Router,
     private translateService: TranslateService,
@@ -19,7 +25,18 @@ export class ShellComponent {
     private alertController: AlertController,
     private actionSheetController: ActionSheetController,
     private i18nService: I18nService
-  ) {}
+  ) { }
+
+  ngOnInit() {
+    this.isToggled = darkTheme;
+    console.log("OnInit Dark theme : " + this.isToggled);
+  }
+
+  toggleTheme(): void {
+    console.log("Dark theme : " + this.isToggled);
+    this.isToggled = !this.isToggled;
+    changeTheme();
+  }
 
   get isWeb(): boolean {
     return !this.platform.is('cordova');

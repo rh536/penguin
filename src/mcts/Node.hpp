@@ -2,12 +2,20 @@
 #define NODE_HPP_
 
 #include <vector>
+#include <stack>
+#include <iostream>
+#include <math.h>
+#include <limits>
 
-#include "../game_logic/utils/Move.hpp"
+#include "Tree.hpp"
+#include "../game_logic/AbstractBoardCell.hpp"
+#include "../game_logic/AbstractPlayer.hpp"
+
+#include "../log.hpp"
 
 namespace game
 {
-template <class CellT, class PlayerT, class PawnT>
+template <class PlayerT, class CellT>
 class AbstractGame;
 }
 
@@ -23,8 +31,9 @@ protected:
      */
     std::vector<Node *> childNodes;
     Node *parent = nullptr;
-    game::Move _move;
-    game::AbstractGame<game::AbstractBoardCell, game::AbstractPlayer, game::AbstractPawn<game::AbstractPlayer, game::AbstractBoardCell>> *game = nullptr;
+    game::AbstractPlayer *player = nullptr;
+    game::AbstractBoardCell *targetedCell = nullptr;
+    game::AbstractGame<game::AbstractPlayer, game::AbstractBoardCell> *game = nullptr;
 
     static double formula(int winsSuccessor, int numberVisitsSuccessor, int numberVisitsFather);
 
@@ -36,8 +45,9 @@ public:
 
     explicit Node(
         Node *parent,
-        const game::Move& move,
-        game::AbstractGame<game::AbstractBoardCell, game::AbstractPlayer, game::AbstractPawn<game::AbstractPlayer, game::AbstractBoardCell>> *game);
+        game::AbstractPlayer *player,
+        game::AbstractBoardCell *targetedCell,
+        game::AbstractGame<game::AbstractPlayer, game::AbstractBoardCell> *game);
     ~Node();
 
     bool doAction();
@@ -48,23 +58,21 @@ public:
 
     Node *nodeWithMaxVisits() const;
 
-    void expandNode(std::vector<game::Move> possibleMove);
+    void expandNode(std::vector<game::AbstractBoardCell *> possibleMove, game::AbstractPlayer *nextPlayer);
+
+    game::AbstractPlayer *getPlayer() const { return player; };
 
     Node *getParent() const { return parent; };
 
-    game::AbstractBoardCell *getTargetedCell() const { return _move.target; };
+    game::AbstractBoardCell *getTargetedCell() const { return targetedCell; };
 
-    static game::Move getRandomAvailableMove(
-        game::AbstractGame<game::AbstractBoardCell, game::AbstractPlayer, game::AbstractPawn<game::AbstractPlayer, game::AbstractBoardCell>> *game,
-        unsigned int player_id);
+    game::AbstractBoardCell *getRandomAvailableCell() const;
 
     int randomSimulation() const;
 
     Node *randomChooseChildOrDefaultMe();
 
     void backPropagateAndRevertAction(const int winnerId);
-
-    game::Move getMove() const { return _move; };
 };
 } // namespace mcts
 

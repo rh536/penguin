@@ -1,11 +1,3 @@
-#include <iostream>
-#include <cstring>
-#include <algorithm>
-#include "../utils/conversions.hpp"
-#include "Board.hpp"
-#include "BoardCell.hpp"
-#include "PenguinPawn.hpp"
-
 #include "PrintHex.hpp"
 
 namespace game
@@ -55,7 +47,7 @@ void PrintHex::print()
             {
                 const Position pos = {xx, yy};
                 char line1[MAX_TEXT_LENGTH + 1], line2[MAX_TEXT_LENGTH + 1];
-                PenguinPawn *owner = cell->getOwner();
+                PenguinPlayer *owner = cell->getOwner();
                 if (owner)
                     sprintf(line1, "p:%d", (int)owner->getId());
                 else

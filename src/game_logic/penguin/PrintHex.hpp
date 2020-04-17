@@ -3,13 +3,15 @@
 #ifndef PENGUIN_PRINT_HEX_HPP_
 #define PENGUIN_PRINT_HEX_HPP_
 
-#include "../utils/Position.hpp"
+#include <iostream>
+#include "Board.hpp"
+#include <cstring>
+#include <algorithm>
 
 namespace game
 {
 namespace penguin
 {
-class Board;
 class PrintHex
 {
 private:

@@ -1,24 +1,14 @@
-#include <vector>
-#include <math.h>
-#include <limits>
-#include <assert.h>
-
-#include "../game_logic/AbstractBoard.hpp"
-#include "../game_logic/AbstractBoardCell.hpp"
-#include "../game_logic/AbstractGame.hpp"
-#include "../game_logic/AbstractPlayer.hpp"
-#include "../game_logic/AbstractPawn.hpp"
-#include "Tree.hpp"
-
 #include "Node.hpp"
 
 namespace mcts
 {
 Node::Node(Node *parent,
-           const game::Move &move,
-           game::AbstractGame<game::AbstractBoardCell, game::AbstractPlayer, game::AbstractPawn<game::AbstractPlayer, game::AbstractBoardCell>> *game)
+           game::AbstractPlayer *player,
+           game::AbstractBoardCell *targetedCell,
+           game::AbstractGame<game::AbstractPlayer, game::AbstractBoardCell> *game)
     : parent(parent),
-      _move(move),
+      player(player),
+      targetedCell(targetedCell),
       game(game)
 {
 }
@@ -45,9 +35,7 @@ Node *Node::selectBestChildAndDoAction()
 {
     Node *ret = this;
 
-    if (ret->_move.target)
-    // TODO check if nothing went wrong commenting these multiple lines :)
-    // if (parent)
+    if (ret->targetedCell)
     {
         ret->doAction();
     }
@@ -56,7 +44,7 @@ Node *Node::selectBestChildAndDoAction()
     {
         int parentVisits = ret->visits;
 
-        double max = -std::numeric_limits<double>::max();
+        double max = std::numeric_limits<double>::min();
         Node *temp = ret;
         // One child must be selected to further develop
         for (Node *node : ret->childNodes)
@@ -74,13 +62,10 @@ Node *Node::selectBestChildAndDoAction()
             }
         }
 
-        assert("the Node that should have been returned is still identical to the porevious one, we are looping over the same element " &&
-               ret != temp);
         ret = temp;
 
         // exclude the root node that doesn't have any action associated...
-        if (ret->_move.target)
-        // if (parent)
+        if (ret->targetedCell)
         {
             ret->doAction();
         }
@@ -92,50 +77,52 @@ Node *Node::selectBestChildAndDoAction()
 bool Node::doAction()
 {
     // do our move
-    return game->play(_move.pawn, _move.target);
+    return game->play(player->getId(), targetedCell);
 }
 
 void Node::revertAction()
 {
-    return game->revertPlay();
+    return game->revertPlay(targetedCell);
 }
 
-game::Move Node::getRandomAvailableMove(
-    game::AbstractGame<game::AbstractBoardCell, game::AbstractPlayer, game::AbstractPawn<game::AbstractPlayer, game::AbstractBoardCell>> *game,
-    const unsigned int player_id)
+game::AbstractBoardCell *Node::getRandomAvailableCell() const
 {
-    std::vector<game::Move> moves = game->getAvailableMoves(game->board->getPlayerById(player_id));
 
-    size_t moves_size = moves.size();
-    assert(moves_size > 0);
+    auto cells = game->board->getAvailableCells(player->getId());
+    // auto cells = dynamic_cast<std::vector<game::AbstractBoardCell *>&>();
 
-    // random index ranging between 0 and moves.size() not included; (eg. 0 and 3, 3 not included)
-    unsigned int index = rand() % moves_size;
+    // random index ranging between 0 and cells.size() not included; (eg. 0 and 3, 3 not included)
+    unsigned int index = rand() % cells.size();
 
-    return moves[index];
+    return cells[index];
 }
 
 int Node::randomSimulation() const
 {
-    int ii = 0;
+    // 'convert' the two playes into random players (decisional)
+
+    // save the actions done so we can revert them;
+    std::stack<game::AbstractBoardCell *> playedCells;
+
     while (!game->isFinished())
     {
-        game::Move random_move = getRandomAvailableMove(game, game->getPlayerToPlay());
+        game::AbstractBoardCell *cell = getRandomAvailableCell();
 
-        bool res = game->play(
-            random_move.pawn,
-            random_move.target);
-        assert(res == true);
-        ++ii;
+        game->play(
+            game->getPlayerToPlay(),
+            cell);
+        playedCells.push(cell);
     }
 
     // check the victory
     int winner = game->checkStatus();
 
-    // revert play the random game the number of times we moved
-    while (ii-- > 0)
+    // revert the random game
+    while (!playedCells.empty())
     {
-        game->revertPlay();
+        game->revertPlay(playedCells.top());
+        // remove the element
+        playedCells.pop();
     }
 
     return winner;
@@ -144,8 +131,7 @@ int Node::randomSimulation() const
 void Node::backPropagateAndRevertAction(const int winnerId)
 {
     ++visits;
-    const unsigned int player_id = _move.pawn ? _move.pawn->getOwner()->getId() : 0;
-    if (winnerId == (int)player_id)
+    if (winnerId == (int)player->getId())
     {
         victories += 10;
     }
@@ -153,10 +139,10 @@ void Node::backPropagateAndRevertAction(const int winnerId)
     {
         victories++;
     }
-    // else
-    // {
-    //     // victories+=20;
-    // }
+    else
+    {
+        // victories+=20;
+    }
 
     if (parent != nullptr)
     {
@@ -196,20 +182,11 @@ Node *Node::randomChooseChildOrDefaultMe()
     return ret;
 }
 
-// void Node::expandNode(std::vector<game::Move>& possibleMove, game::AbstractPlayer *nextPlayer)
-// {
-//     for (game::Move& move : possibleMove)
-//     {
-//         Node *node = new Node(this, nextPlayer, move, game);
-//         childNodes.push_back(node);
-//     }
-// }
-
-void Node::expandNode(std::vector<game::Move> possibleMove)
+void Node::expandNode(std::vector<game::AbstractBoardCell *> possibleMove, game::AbstractPlayer *nextPlayer)
 {
-    for (game::Move &move : possibleMove)
+    for (game::AbstractBoardCell *move : possibleMove)
     {
-        Node *node = new Node(this, move, game);
+        Node *node = new Node(this, nextPlayer, move, game);
         childNodes.push_back(node);
     }
 }

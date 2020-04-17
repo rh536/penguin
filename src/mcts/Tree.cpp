@@ -1,22 +1,17 @@
-#include "../game_logic/AbstractBoard.hpp"
-#include "../game_logic/AbstractBoardCell.hpp"
-#include "../game_logic/AbstractGame.hpp"
-#include "../game_logic/AbstractPlayer.hpp"
-#include "Node.hpp"
-
 #include "Tree.hpp"
 
 namespace mcts
 {
 
 Tree::Tree(
-    game::AbstractGame<game::AbstractBoardCell, game::AbstractPlayer, game::AbstractPawn<game::AbstractPlayer, game::AbstractBoardCell>> *game,
+    game::AbstractGame<game::AbstractPlayer, game::AbstractBoardCell> *game,
+    game::AbstractPlayer *me,
     const MCTSConstraints &constraints)
-    :
+    : playerMe(me),
       game(game),
       constraints(constraints)
 {
-    rootNode = new Node(nullptr, {nullptr, nullptr, nullptr}, game);
+    rootNode = new Node(nullptr, me, nullptr, game);
 }
 
 Tree::~Tree()
@@ -27,8 +22,9 @@ Tree::~Tree()
     }
 }
 
-unsigned int Tree::begin()
+void Tree::begin()
 {
+    std::cout << "Beginning MCTS search" << std::endl;
     timer t;
     while (t.milliseconds_elapsed() < (unsigned long)constraints.time
            // && !rootNode->getIsFullyDone()
@@ -40,8 +36,9 @@ unsigned int Tree::begin()
 
             if (!game->isFinished())
             {
-                const unsigned int id = game->getPlayerToPlay();
-                promisingNode->expandNode(game->getAvailableMoves(game->board->getPlayerById(id)));
+                promisingNode->expandNode(
+                    game->board->getAvailableCells(promisingNode->getPlayer()->getId()),
+                    game->board->getPlayerById(game->getPlayerToPlay()));
             }
 
             Node *nodeToExplore = promisingNode->randomChooseChildOrDefaultMe();
@@ -56,12 +53,12 @@ unsigned int Tree::begin()
         }
     }
 
-    return rootNode->visits;
+    DEBUG(rootNode->visits);
 }
 
-game::Move Tree::bestMove() const
+game::AbstractBoardCell *Tree::bestMove() const
 {
-    return rootNode->nodeWithMaxVisits()->getMove();
+    return rootNode->nodeWithMaxVisits()->getTargetedCell();
 }
 
 } // namespace mcts
