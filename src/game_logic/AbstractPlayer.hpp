@@ -1,8 +1,11 @@
 #ifndef ABSTRACT_PLAYER_HPP_
 #define ABSTRACT_PLAYER_HPP_
 
+#include "History.hpp"
+
 namespace game
 {
+
 class AbstractPlayer
 {
 private:

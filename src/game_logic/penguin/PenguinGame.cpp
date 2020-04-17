@@ -1,3 +1,10 @@
+#include <algorithm>
+#include <assert.h>
+
+#include "../utils/Move.hpp"
+#include "Board.hpp"
+#include "PenguinPawn.hpp"
+#include "HumanPlayer.hpp"
 #include "PenguinGame.hpp"
 
 namespace game
@@ -25,17 +32,11 @@ bool PenguinGame::play(const int player_id, BoardCell *move)
     return moved;
 }
 
-void PenguinGame::revertPlay(BoardCell *cell)
+const Move<BoardCell, PenguinPawn> PenguinGame::revertPlay()
 {
     --numberMoves;
-    int player = 0;
-
-    if (numberMoves % 2)
-    {
-        player = 1;
-    }
-
-    board->revertMove(player, cell);
+    assert("A negative number of moves has been registered !!!" && numberMoves >= 0);
+    return board->revertMove();
 }
 
 bool PenguinGame::isFinished() const
@@ -53,6 +54,36 @@ int PenguinGame::getPlayerToPlay() const
     }
 
     return nextPlayer;
+}
+
+std::vector<Move<BoardCell, PenguinPawn>> PenguinGame::getAvailableMoves(HumanPlayer *human_player)
+{
+    assert(human_player != nullptr);
+    std::vector<Move<BoardCell, PenguinPawn>> ret;
+    Board *penguin_board = static_cast<Board *>(board);
+    std::vector<PenguinPawn *> penguins = human_player->getPenguins();
+
+    for (PenguinPawn *penguin : penguins)
+    {
+        BoardCell *current_cell = penguin->getCurrentCell();
+        std::vector<BoardCell *> availableCells = penguin_board->getAvailableCells(penguin);
+        std::transform(
+            availableCells.begin(),
+            availableCells.end(),
+            std::back_inserter(ret),
+            [current_cell, penguin](BoardCell *target_cell) -> Move<BoardCell, PenguinPawn> {
+                return {current_cell,
+                        target_cell,
+                        penguin};
+            });
+    }
+
+    return ret;
+}
+
+int PenguinGame::checkStatus() const
+{
+    return board->checkStatus();
 }
 } // namespace penguin
 } // namespace game

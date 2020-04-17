@@ -2,7 +2,6 @@
 
 namespace game
 {
-
 AbstractPlayer::AbstractPlayer(unsigned int id)
     : id(id)
 {

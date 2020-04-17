@@ -18,12 +18,11 @@ bool PlayerVComputer::play(int row, int col)
     return play(getPlayerToPlay(), board->getCell(row, col));
 }
 
-AbstractBoardCell *PlayerVComputer::mctsResult()
+Move<BoardCell, Player> PlayerVComputer::mctsResult()
 {
     mcts::MCTSConstraints constraints;
     constraints.time = 250;
-    auto game = dynamic_cast<AbstractGame<AbstractPlayer, AbstractBoardCell>*>(this);
-    mcts::Tree tree(game, board->getPlayerById(getPlayerToPlay()), constraints);
+    mcts::Tree<BoardCell, Player, Player> tree(this, constraints);
     tree.begin();
     AbstractBoardCell *bestMove = tree.bestMove();
 

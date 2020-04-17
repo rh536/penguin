@@ -1,7 +1,7 @@
 #ifndef TIC_TAC_TOE_TIC_TAC_TOE_HPP_
 #define TIC_TAC_TOE_TIC_TAC_TOE_HPP_
 
-#include <iostream>
+#include "../utils/Move.hpp"
 #include "../AbstractGame.hpp"
 #include "Board.hpp"
 
@@ -25,10 +25,11 @@ public:
     ~TicTacToe();
 
     bool isFinished() const override;
-    bool play(const int player_id, BoardCell *cell) override;
-    void revertPlay(BoardCell *move) override;
-    int getPlayerToPlay() const override;
-    int checkStatus() const override { return board->checkStatus(); };
+    bool play(Player *player, BoardCell *cell) override;
+    const Move<BoardCell, Player> revertPlay() override;
+    unsigned int getPlayerToPlay() const override;
+    int checkStatus() const override;
+    std::vector<Move<BoardCell, Player>> getAvailableMoves(Player *player) override;
 };
 } // namespace tic_tac_toe
 } // namespace game
