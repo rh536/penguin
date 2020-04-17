@@ -25,11 +25,17 @@ public:
     ~PenguinGame();
 
     bool isFinished() const override;
-    bool play(const int player_id, BoardCell *cell) override;
-    void revertPlay(BoardCell *move) override;
-    int getPlayerToPlay() const override;
-    int checkStatus() const override { return board->checkStatus(); };
+    bool play(PenguinPawn *pawn, BoardCell *cell) override;
+    const Move<BoardCell, PenguinPawn> revertPlay() override;
+    /**
+     * @brief Get the Human player to play, not the penguin one
+     * 
+     * @return unsigned int the id of the human player to play
+     */
+    unsigned int getPlayerToPlay() const override;
+    int checkStatus() const override;
     Board *getBoard() { return (Board *)board; };
+    std::vector<Move<BoardCell, PenguinPawn>> getAvailableMoves(HumanPlayer *player) override;
 };
 } // namespace penguin
 } // namespace game

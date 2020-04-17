@@ -49,7 +49,7 @@ EMSCRIPTEN_BINDINGS(game_logic_penguin_bind)
         .function("getPlayersOnBoard", &Board::getPlayersOnBoard, allow_raw_pointers())
         .function("getPlayerById", &Board::getPlayerById, allow_raw_pointers());
 
-    class_<PrintHex>("PrintHexASCII")
+    class_<PrintHex>("PrintHex")
         .constructor<Board *>()
         .function("print", &PrintHex::print);
 
